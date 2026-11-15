@@ -1,0 +1,15 @@
+device: cuda:0
+run_dir: null
+name: ''
+headless: true
+kit_args: ''
+livestream: 0
+input: null
+checkpoint: null
+env_ids:
+- 0
+batch_size: 256
+label_batch_size: 16
+horizon: 1.0
+maximum: 4.5
+num_threads: 4

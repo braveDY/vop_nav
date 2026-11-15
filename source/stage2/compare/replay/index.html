@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>BasicNav · Replay</title>
+  <link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+  <header class="header">
+    <h1><span class="brand-mark" aria-hidden="true"></span>BasicNav <span class="title-divider">/</span> <span class="page-title">Replay</span></h1>
+  </header>
+  <main>
+    <aside class="panel sidebar" aria-label="Replay settings">
+      <section class="group recording-controls">
+        <h2>Recording</h2>
+        <div class="field-grid">
+          <div><label for="levelFilter">level</label><select id="levelFilter"><option value="all">all</option></select></div>
+          <div><label for="envSelect">env</label><select id="envSelect"></select></div>
+        </div>
+      </section>
+      <section class="group vo-controls">
+        <h2>Safe velocity</h2>
+        <label for="sourceSelect">Source</label>
+        <select id="sourceSelect"><option value="vo">Analytic VO</option><option value="model" disabled>VOP-Net</option><option value="compare" disabled>Compare</option></select>
+        <div id="currentVelocityStatus" class="vo-current">—</div>
+        <div id="comparisonPanel" hidden>
+          <details class="disclosure">
+            <summary>Metrics</summary>
+          <dl class="comparison-metrics">
+            <div><dt>Mean IoU</dt><dd id="frameIou">—</dd></div>
+            <div><dt>Boundary MAE</dt><dd id="frameMae">—</dd></div>
+            <div><dt>Extra interval</dt><dd id="frameExtra">—</dd></div>
+            <div><dt>Missed interval</dt><dd id="frameMissed">—</dd></div>
+          </dl>
+          </details>
+          <label class="check"><input id="showDifference" type="checkbox" checked>Highlight differences</label>
+          <p class="hint">Red: extra · Blue: missed</p>
+        </div>
+      </section>
+      <details class="group disclosure">
+        <summary>VO parameters</summary>
+        <div class="details-body">
+          <div class="value-label">Horizon τ<strong id="horizonValue">1.0 s</strong></div>
+          <label for="displayScale">Display scale</label><select id="displayScale"><option value="0.5">1 m/s → 0.5 m</option><option value="1" selected>1 m/s → 1 m</option><option value="2">1 m/s → 2 m</option></select>
+          <p class="hint parameter-note">Max speed <span id="voMaximum">4.5</span> m/s · Radius <span id="voRadius">0.35 m</span></p>
+        </div>
+      </details>
+      <details class="group disclosure">
+        <summary><span>Robot state</span><span class="summary-value"><strong id="speedValue">—</strong> m/s</span></summary>
+        <dl class="details-body">
+          <div><dt>Height</dt><dd><span id="heightValue">—</span> m</dd></div>
+          <div><dt>Episode</dt><dd id="episodeValue">—</dd></div>
+          <div><dt>Step</dt><dd id="stepValue">—</dd></div>
+          <div><dt>Yaw</dt><dd id="yawValue">—</dd></div>
+          <div><dt>Roll / pitch</dt><dd id="attitudeValue">—</dd></div>
+          <div><dt>5-frame history</dt><dd id="historyValue">—</dd></div>
+        </dl>
+      </details>
+      <details class="group disclosure">
+        <summary>Layers</summary>
+        <div class="details-body layers">
+          <label class="check"><input type="checkbox" id="showLidar" checked>Lidar hits</label>
+          <label class="check"><input type="checkbox" id="showRays">Lidar rays</label>
+          <label class="check"><input type="checkbox" id="showTrail" checked>Trail</label>
+          <label class="check"><input type="checkbox" id="showVelocity" checked>Velocity</label>
+        </div>
+      </details>
+    </aside>
+    <div class="content">
+      <section class="panel workspace">
+        <div class="canvas-wrap"><canvas id="sceneCanvas" aria-label="Top-down replay of robot, obstacles, lidar and VO velocity regions"></canvas></div>
+        <div class="scene-caption">
+          <details class="help"><summary aria-label="Replay help">?</summary><div class="help-content">Regions show velocity choices, not traversable ground. Orange: minimum speed. Green: maximum speed.<br><br>Trails are separated by episode.<br><br>Space: play / pause<br>← →: step through frames</div></details>
+        </div>
+        <div class="transport">
+          <div class="transport-row">
+            <div class="buttons"><button id="startButton" class="icon-button" title="Restart" aria-label="Restart">↺</button><button id="prevButton" class="icon-button" title="Previous frame (←)" aria-label="Previous frame">‹</button><button id="playButton" class="primary">Play</button><button id="nextButton" class="icon-button" title="Next frame (→)" aria-label="Next frame">›</button></div>
+            <div class="time-row"><strong id="timeValue">0.00 s</strong><span class="time-divider">/</span><span id="durationValue">—</span><span id="frameValue" class="frame-label">—</span></div>
+            <div class="play-options"><select id="rateSelect" aria-label="Playback speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select><select id="playbackMode" aria-label="Playback mode"><option value="loop">Loop current env</option><option value="next">Next env</option></select></div>
+          </div>
+          <input id="timeline" type="range" min="0" max="0" value="0" aria-label="Replay timeline">
+        </div>
+      </section>
+      <div id="error" class="error" role="alert" hidden></div>
+    </div>
+  </main>
+  <script src="manifest.js"></script>
+  <script src="comparison.js"></script>
+  <script src="vo_view.js"></script>
+  <script src="viewer.js"></script>
+</body>
+</html>

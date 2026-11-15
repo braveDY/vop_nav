@@ -1,0 +1,41 @@
+device: cuda:0
+run_dir: null
+name: ''
+headless: true
+kit_args: ''
+livestream: 0
+task: Unitree-Go2-VOP-BasicNav
+checkpoint: null
+vop_checkpoint: null
+num_envs: 4096
+seed: 1
+low_memory: false
+deadline: null
+chunk_iterations: 25
+experiment_name: vop_basic
+environment: {}
+agent:
+  seed: 1
+  policy:
+    init_noise_std: 1.0
+    feature_width: 64
+    fusion_width: 256
+  algorithm:
+    value_loss_coef: 1.0
+    use_clipped_value_loss: true
+    clip_param: 0.2
+    entropy_coef: 0.003
+    num_learning_epochs: 5
+    num_mini_batches: 4
+    learning_rate: 0.001
+    schedule: adaptive
+    gamma: 0.99
+    lam: 0.95
+    desired_kl: 0.01
+    max_grad_norm: 1.0
+  runner:
+    policy_class_name: BasicNavActorCritic
+    algorithm_class_name: PPO
+    num_steps_per_env: 48
+    max_iterations: 10000
+    save_interval: 1000

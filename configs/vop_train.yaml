@@ -1,0 +1,21 @@
+device: cuda:0
+run_dir: null
+name: ''
+headless: true
+kit_args: ''
+livestream: 0
+dataset: null
+epochs: 50
+batch_size: 1024
+learning_rate: 0.001
+weight_decay: 0.0001
+alpha: 0.2
+seed: 123
+workers: 2
+num_threads: 4
+tensorboard: true
+channels:
+- 24
+- 48
+- 64
+hidden: 256

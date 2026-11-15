@@ -1,0 +1,26 @@
+device: cuda:0
+run_dir: null
+name: ''
+headless: true
+kit_args: ''
+livestream: 0
+checkpoint: null
+num_envs: 1024
+files: 5
+steps_per_file: 48
+seed: 123
+levels:
+- 0
+- 1
+- 2
+- 3
+- 4
+- 6
+- 9
+geometry_check: false
+prepared_dir: null
+horizon: 1.0
+maximum: 4.5
+val_fraction: 0.1
+shard_size: 8192
+label_batch_size: 64

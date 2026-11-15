@@ -1,0 +1,227 @@
+# License scope and third-party notices
+
+## Repository licensing
+
+Except for third-party material described below or material carrying a separate
+license notice, this repository's code, documentation, and project modifications
+are distributed under Creative Commons Attribution-NonCommercial 4.0
+International (CC BY-NC 4.0). The full text is in ../LICENSE:
+https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+Preserve existing copyright and license notices. Give appropriate credit to this
+repository and relevant upstream authors, link to the applicable license, and
+identify modifications when sharing adapted material. CC BY-NC 4.0 does not
+permit commercial use of the material it covers. It does not replace the
+independent licenses of third-party components or grant rights to trademarks.
+Because of the noncommercial restriction, the repository as a whole is not
+open source under the Open Source Initiative definition.
+
+This notice does not assign a new license to pretrained weights, datasets, or
+external robot assets. This source release does not include pretrained weights,
+datasets, or local robot URDF/mesh assets. Future releases of such material
+require a separate provenance and redistribution-permission review.
+
+## ABS
+
+Source: https://github.com/LeCAR-Lab/ABS
+Project: https://agile-but-safe.github.io/
+Authors: Tairan He, Chong Zhang, Wenli Xiao, Guanqi He, Changliu Liu, Guanya Shi.
+
+The upstream README states that the codebase is under CC BY-NC 4.0, with inherited
+licenses from Legged Gym and RSL-RL. This repository adapts the ABS implementation
+from Isaac Gym to IsaacLab and adds the BasicNav / VOP-Net / VOP-Nav workflow,
+data collection, evaluation, visualization, and runtime tooling. These changes
+are maintained by this repository and are not an official upstream release.
+The upstream licensing statement was checked on 2026-11-14:
+https://github.com/LeCAR-Lab/ABS/blob/main/README.md
+
+### Source correspondence and modifications
+
+The source comparison on 2026-11-14 used upstream commit
+9b95329ffb823c15dead02be620ff96938e4d0a3:
+https://github.com/LeCAR-Lab/ABS/tree/9b95329ffb823c15dead02be620ff96938e4d0a3
+This identifies the comparison baseline, not necessarily the original import
+commit or the complete history of each file. Paths below are repository-relative.
+
+| Material in this repository | Corresponding upstream material and modifications |
+| --- | --- |
+| source/loco_rl/algorithms/ppo.py | training/rsl_rl/rsl_rl/algorithms/ppo.py: retains the PPO implementation, changes imports and policy type references, and removes recurrent-policy support. |
+| source/loco_rl/runners/on_policy_runner.py | training/rsl_rl/rsl_rl/runners/on_policy_runner.py: retains the rollout and training loop; changes policy selection, cost logging, iteration accounting, logging and checkpoint handling, and adds VOP metadata. |
+| source/loco_rl/storage/rollout_storage.py | training/rsl_rl/rsl_rl/storage/rollout_storage.py: retains transition storage, return/advantage computation and feed-forward minibatches; removes recurrent-state storage and recurrent minibatches. |
+| source/loco_rl/modules/basic_nav_actor_critic.py | training/rsl_rl/rsl_rl/modules/actor_critic.py: retains/adapts the Gaussian-policy interface and directly learned std parameterization. The depth/LiDAR encoders and residual feature-fusion network replace the upstream MLP architecture. |
+| source/loco_rl/modules/vop_nav_actor_critic.py | Extends the local BasicNav implementation with velocity-interval features; initializes the same directly learned std parameter and inherits the Gaussian-policy methods from BasicNav. |
+| source/assets/mdp/rewards.py and source/assets/mdp/reward_math.py | training/legged_gym/legged_gym/envs/base/legged_robot_pos.py: position_target corresponds to _reward_reach_pos_target_soft/tight; heading_target to _reward_reach_heading_target; stalled to _reward_nomove; stand_at_goal to _reward_stand_still_pos; airborne to _reward_fly; agility_reward follows the structure of _reward_velo_dir. Data access is adapted to IsaacLab, with changes to some formulas, posture offsets, thresholds and contact tests. This correspondence does not attribute every function in these local files to ABS. |
+
+The RSL-RL files above are inherited components included in ABS, not a claim
+that all of their contents were originally authored by the ABS authors. Existing
+ETH Zurich / NVIDIA copyright notices and applicable BSD terms must be retained.
+The actor/critic interface correspondence also applies to the local policy
+modules even though their network architectures differ from the upstream MLP.
+
+The IsaacLab environment adaptation, source/stage2/ workflow and VOP navigation
+extensions are additions or rewrites relative to this ABS baseline. This source
+comparison does not establish exclusive authorship, audit other upstream sources,
+or verify the provenance or redistribution rights of weights, datasets or assets.
+
+## Legged Gym and RSL-RL
+
+Sources of the inherited license texts:
+https://github.com/LeCAR-Lab/ABS/blob/main/training/legged_gym/LICENSE
+https://github.com/LeCAR-Lab/ABS/blob/main/training/rsl_rl/LICENSE
+
+Relevant material includes source/loco_rl/, in particular files carrying
+BSD-3-Clause headers. Those headers and the applicable BSD terms continue to
+apply; the root CC license does not replace them. ABS-specific adaptations may
+also contain ABS-derived material, so these notices do not declare the entire
+directory independently available under BSD alone.
+
+References to licenses/assets and licenses/dependencies in the verbatim upstream
+texts below refer to upstream paths, not paths in this repository.
+
+### Legged Gym — verbatim upstream license
+
+Copyright (c) 2021, ETH Zurich, Nikita Rudin
+Copyright (c) 2021, NVIDIA CORPORATION & AFFILIATES
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software without
+   specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+See licenses/assets for license information for assets included in this repository.
+See licenses/dependencies for license information of dependencies of this package.
+
+
+### RSL-RL — verbatim upstream license
+
+Copyright (c) 2021, ETH Zurich, Nikita Rudin
+Copyright (c) 2021, NVIDIA CORPORATION & AFFILIATES
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software without
+   specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+See licenses/dependencies for license information of dependencies of this package.
+
+## IsaacLab
+
+Source: https://github.com/isaac-sim/IsaacLab
+License: BSD-3-Clause for the framework code covered by its LICENSE.
+Relevant integration: IsaacLab-based environment/MDP APIs and
+source/assets/robot/unitree_go2.py, which imports the official Go2 configuration.
+
+Isaac Sim, downloadable USD robot assets, and other external resources may have
+separate terms. Importing an asset configuration does not grant redistribution
+rights to the asset itself. This repository does not bundle the removed local
+Go2 URDF/mesh directory as part of this licensing update.
+
+The following is the upstream framework LICENSE retrieved on 2026-11-14. It is
+not a license inventory for every IsaacLab asset or dependency.
+https://github.com/isaac-sim/IsaacLab/blob/main/LICENSE
+
+Please see README.md for additional licensing information.
+
+Copyright (c) 2022-2026, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
+
+All rights reserved.
+
+SPDX-License-Identifier: BSD-3-Clause
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software without
+   specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+## Python-RVO2 / RVO2
+
+Source: https://github.com/sybrenstuvel/Python-RVO2
+Revision used by the installation instructions in README_ZH.md:
+c2c46ba8d59556aa10faf03479293236efea154d
+License: Apache License, Version 2.0.
+Pinned upstream license:
+https://github.com/sybrenstuvel/Python-RVO2/blob/c2c46ba8d59556aa10faf03479293236efea154d/LICENSE
+Full text: Apache-2.0.txt in this directory.
+
+This is an optional evaluation dependency installed separately into the
+runtime environment. Its source and compiled extension are not bundled in this
+source release. If redistributing the dependency, retain its
+license, source copyright notices, and any applicable upstream NOTICE material;
+mark modifications as required by Apache-2.0.
+
+## Other runtime dependencies
+
+Python, NumPy, PyTorch, TensorBoard, Cython, Isaac Sim, and other installed
+packages retain their own licenses. The repository license does not relicense
+these packages. Distributing an environment, container image, model bundle, or
+binary release requires checking the licenses of what is actually included.
+
+## VOP-Nav paper attribution
+
+Learning Agile Navigation in Crowded Environments for Quadruped Robots:
+https://arxiv.org/abs/2607.15036
+This repository is an unofficial reproduction. Citing a paper is attribution,
+not permission to redistribute its text, figures, or an external implementation.

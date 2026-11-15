@@ -1,0 +1,45 @@
+play: Training
+play_level: 9
+evaluate:
+- Forest
+- Office
+- Square
+- Slow
+levels:
+- 0
+- 3
+- 6
+- 9
+parameters:
+  Forest:
+    width: 8.0
+    dynamic: 6
+    cylinders: 20
+    boxes: 0
+    walls: false
+    reactivity: 0.2
+    max_speed: 2.0
+  Office:
+    width: 10.0
+    dynamic: 8
+    cylinders: 0
+    boxes: 30
+    walls: true
+    reactivity: 0.4
+    max_speed: 2.0
+  Square:
+    width: 8.0
+    dynamic: 20
+    cylinders: 0
+    boxes: 0
+    walls: true
+    reactivity: 0.6
+    max_speed: 2.0
+  Slow:
+    width: 10.0
+    dynamic: 8
+    cylinders: 0
+    boxes: 12
+    walls: true
+    reactivity: 0.2
+    max_speed: 0.6
