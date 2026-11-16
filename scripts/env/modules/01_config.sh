@@ -86,7 +86,8 @@ detect_remote() {
 _show_env_help() {
     cat <<'HELP'
   train / collect / train_vop / play / evaluate / compare
-      Start a background task from YAML. Use --help for common overrides.
+      Navigation uses --task and native Python configs; stage two uses YAML.
+      Use --help for task options.
       Add --log to follow output. Compare runs on a remote server.
   download [new-local-folder]  Download the latest complete comparison page
   status                     Show tasks, progress, logs and GPU information
@@ -94,7 +95,7 @@ _show_env_help() {
   stop <kind>                Stop all tasks of that kind
   sync_code [--dry-run]      Manually sync code and YAML to the selected server
   install_env                Install project packages only
-  tb / stop_tb               Start or stop TensorBoard and its SSH tunnel
+  tb / stop tb               Start or stop TensorBoard and its SSH tunnel
   enter / detect_remote      Open the runtime shell or reload the server profile
 HELP
 }

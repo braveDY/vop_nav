@@ -1,30 +1,12 @@
-# vop_nav
+# VOP-Nav unofficial reproduction
 
 [简体中文](README_ZH.md)
 
-An unofficial IsaacLab reproduction of
-[Learning Agile Navigation in Crowded Environments for Quadruped Robots](https://arxiv.org/abs/2607.15036)
-for the Unitree Go2. The BasicNav stage adapts
-[ABS — Agile But Safe](https://github.com/LeCAR-Lab/ABS) from Isaac Gym to IsaacLab.
-This project does not claim to match the paper or official implementation's results.
-
-## Workflow
-
-1. Train a BasicNav policy.
-2. Collect trajectories and prepare analytic velocity-obstacle labels.
-3. Train VOP-Net offline.
-4. Train a VOP-Nav policy with the frozen VOP-Net.
-
-The source release contains code and configuration files. Pretrained weights,
-datasets, local robot URDF/mesh files, and the original development repository's
-Git history are not included. Robot configuration is imported from IsaacLab.
+An IsaacLab reproduction of [Learning Agile Navigation in Crowded Environments for Quadruped Robots](https://arxiv.org/abs/2607.15036) for Unitree Go2. The BasicNav stage adapts [ABS — Agile But Safe](https://github.com/LeCAR-Lab/ABS) from Isaac Gym to IsaacLab. This project does not claim to match the paper or official implementation's results.
 
 ## Setup
 
-Prepare an NVIDIA GPU, IsaacLab, Isaac Sim, PyTorch, NumPy, and PyYAML in an
-existing Conda environment. IsaacLab must provide `MultiMeshRayCasterCfg` and
-`MultiMeshRayCasterCameraCfg`. A complete tested version matrix is not yet
-provided. Start with a small run in your environment before a full training run.
+Prepare an NVIDIA GPU, IsaacLab, Isaac Sim, PyTorch, NumPy, and PyYAML. IsaacLab must provide `MultiMeshRayCasterCfg` and `MultiMeshRayCasterCameraCfg`. A complete tested version matrix is not yet provided. Non-Training playback and evaluation scenes also need Python-RVO2; installation instructions are in the Chinese guide. Offline VOP-Net training does not start Isaac Sim.
 
 ```bash
 export LOCAL_CONDA_ROOT="$HOME/miniconda3"
@@ -33,29 +15,34 @@ source env.sh
 install_env
 ```
 
-`install_env` installs only the four local project packages using `--no-deps`;
-prepare third-party dependencies separately. Some playback and evaluation scenes
-also require Python-RVO2; see the pinned installation instructions in the
-[Chinese guide](README_ZH.md). Offline VOP-Net training does not start Isaac Sim.
+`install_env` installs the four local packages with `--no-deps`; prepare third-party dependencies separately. See [runtime profiles](scripts/env/servers/README.md) for SSH/Conda and Docker configuration.
 
-Edit the YAML files in `configs/` before launching tasks. Later stages require
-the checkpoints or datasets produced by earlier stages.
+## Workflow and configuration
+
+1. Train BasicNav.
+2. Collect trajectories and prepare analytic velocity-obstacle labels.
+3. Train VOP-Net offline.
+4. Train VOP-Nav with a frozen VOP-Net.
+
+Navigation uses native Python configuration in `source/envs/go2/nav_env_cfg.py`, `vop_nav_env_cfg.py`, and `agents/`. Scene definitions are shared by playback and evaluation in `source/envs/go2/evaluation/layouts.py`. Only stage two uses YAML: `configs/stage2/collect.yaml`, `train.yaml`, and `compare.yaml`.
 
 ```bash
-train --config configs/nav_basic.yaml --num-envs 16 --max-iterations 2
+# Installation smoke run, not a trained policy or benchmark.
+train --task Unitree-Go2-VOP-BasicNav --num_envs 16 --max_iterations 2
+
+# Fill in stage-two input paths before these commands.
+collect
+train_vop --epochs 50
+
+train --task Unitree-Go2-VOP-Nav --vop_checkpoint logs/.../best.pt
 ```
 
-This command is an installation smoke run, not a trained policy or a benchmark.
-For the complete workflow, configuration fields, playback, evaluation, and task
-management, see [README_ZH.md](README_ZH.md). Remote runtime configuration is
-described in [scripts/env/servers/README.md](scripts/env/servers/README.md).
+Default navigation training runs for 6000 iterations. CLI overrides use underscores for navigation (`--num_envs`, `--max_iterations`, `--vop_checkpoint`) and stage-two options retain their existing hyphenated spelling. Run each command with `--help` for details.
 
-## Attribution and license
+After code changes, run `sync_code` explicitly before launching remote tasks. Playback and evaluation require a navigation checkpoint and its adjacent training `config.json`; VOP-Nav also requires the matching VOP-Net checkpoint.
 
-See [LICENSE](LICENSE) and [third-party notices](licenses/THIRD_PARTY_LICENSES)
-for the applicable terms, upstream attribution, and source correspondence.
-The repository uses CC BY-NC 4.0 except for third-party material and separately
-licensed components. Because of its noncommercial restriction, the repository
-as a whole is not open source under the OSI definition. Third-party licenses
-continue to apply; the root license does not grant redistribution rights for
-Isaac Sim, external assets, weights, or datasets.
+See [README_ZH.md](README_ZH.md) for playback, evaluation, comparison exports, task management, and dependencies. This source release contains no pretrained weights, datasets, or local robot URDF/mesh assets.
+
+## License
+
+Licensed under [CC BY-NC 4.0](LICENSE) for noncommercial use. See [third-party notices](licenses/THIRD_PARTY_LICENSES) for third-party licenses.

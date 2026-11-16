@@ -9,7 +9,7 @@ _launch_task() {
     done
     for arg in "${arguments[@]}"; do
         if [[ "$arg" == --help || "$arg" == -h ]]; then
-            PYTHONPATH="${PROJECT_ROOT}/source${PYTHONPATH:+:${PYTHONPATH}}" python3 -c 'from stage2.config import parse_config; import sys; parse_config(sys.argv[1],sys.argv[2:])' "$kind" --help
+            PYTHONPATH="${PROJECT_ROOT}/source:${PROJECT_ROOT}/scripts/utils${PYTHONPATH:+:${PYTHONPATH}}" python3 -c 'import sys; from stage2.config import parse_config; from navigation import parse_arguments; (parse_arguments if sys.argv[1] in ("train","play","evaluate") else parse_config)(sys.argv[1],sys.argv[2:])' "$kind" --help
             return $?
         fi
     done
@@ -45,7 +45,11 @@ log() {
 }
 
 stop() {
-    [[ $# == 1 ]] || { _err "Usage: stop <train|collect|train_vop|compare|play|evaluate>"; return 1; }
+    [[ $# == 1 ]] || { _err "Usage: stop <train|collect|train_vop|compare|play|evaluate|tb>"; return 1; }
+    if [[ "$1" == tb ]]; then
+        _stop_tb
+        return $?
+    fi
     _process_exec stop --kind "$1" || return 1
     if [[ "$1" == play && "${CONNECTION_MODE:-ssh}" != local ]]; then
         _process_exec stop --kind webrtc_udp_bridge || return 1

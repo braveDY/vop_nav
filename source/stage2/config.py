@@ -71,8 +71,7 @@ class TrainConfig:
 
 
 PROJECT = Path(__file__).resolve().parents[2]
-CONFIGS = dict(train='nav_basic', collect='collect', train_vop='vop_train',
-               compare='compare', play='play', evaluate='evaluate')
+CONFIGS = dict(collect='collect', train_vop='train', compare='compare')
 
 
 def read_yaml(path):
@@ -111,16 +110,14 @@ def parse_config(kind, argv=None):
     from datetime import datetime
     import os
     from pathlib import Path
-    default = PROJECT / 'configs' / (CONFIGS[kind] + '.yaml')
+    default = PROJECT / 'configs' / 'stage2' / (CONFIGS[kind] + '.yaml')
     parser = argparse.ArgumentParser(description=f'Run {kind} from a YAML configuration')
     parser.add_argument('--config', type=Path, default=default)
     parser.add_argument('--device')
     parser.add_argument('--run-dir', dest='run_dir', type=Path)
     parser.add_argument('--name')
-    if kind in ('train', 'play', 'evaluate', 'collect'):
+    if kind == 'collect':
         parser.add_argument('--num-envs', dest='num_envs', type=int)
-    if kind == 'train':
-        parser.add_argument('--max-iterations', dest='max_iterations', type=int)
     if kind == 'train_vop':
         parser.add_argument('--epochs', type=int)
     overrides = vars(parser.parse_args(argv))
@@ -129,14 +126,10 @@ def parse_config(kind, argv=None):
         base = read_yaml(default)
         data = merge_config(base, read_yaml(selected))
         data.update({key: value for key, value in overrides.items() if value is not None})
-        if kind == 'train':
-            if overrides.get('max_iterations') is not None:
-                data['agent']['runner']['max_iterations'] = overrides['max_iterations']
-            data['max_iterations'] = data['agent']['runner']['max_iterations']
         if not isinstance(data.get('name', ''), str) or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in data.get('name', '')):
             raise ValueError('name can only contain English letters, numbers, _ and -')
         host_root = os.environ.get('HOST_PROJECT_ROOT', '')
-        for key in ('checkpoint', 'vop_checkpoint', 'dataset', 'input', 'run_dir', 'prepared_dir', 'scene_config'):
+        for key in ('checkpoint', 'dataset', 'input', 'run_dir', 'prepared_dir'):
             value = data.get(key)
             if value is None:
                 continue
@@ -145,31 +138,13 @@ def parse_config(kind, argv=None):
                 value = PROJECT / value.relative_to(host_root)
             data[key] = (PROJECT / value).resolve() if not value.is_absolute() else value.resolve()
         if data.get('run_dir') is None:
-            directory = dict(train='navigation', collect='stage2/datasets', train_vop='stage2/training',
-                             compare='stage2/comparison', play='play', evaluate='evaluation')[kind]
+            directory = dict(collect='stage2/datasets', train_vop='stage2/training',
+                             compare='stage2/comparison')[kind]
             stamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
             data['run_dir'] = PROJECT / 'logs' / directory / (stamp + ('_' + data['name'] if data['name'] else ''))
-        if kind in ('play', 'evaluate'):
-            scenes = read_yaml(data['scene_config'])
-            data['scene_settings'] = scenes
-            if kind == 'play':
-                data['scenario'], data['level'] = scenes['play'], scenes['play_level']
-            else:
-                data['scenarios'], data['levels'] = scenes['evaluate'], scenes['levels']
-            data['policy_type'] = 'vop' if 'VOP-Nav' in data['task'] else 'basic'
-        if kind == 'play':
-            local = os.environ.get('RUN_MODE', 'local') == 'local'
-            data['headless'], data['livestream'] = not local, 0 if local else 2
-            if not local and os.environ.get('REMOTE_STREAM_IP') and '--/app/livestream/publicEndpointAddress=' not in data['kit_args']:
-                data['kit_args'] += (' --/app/livestream/publicEndpointAddress=' + os.environ['REMOTE_STREAM_IP']
-                                     + ' --/app/livestream/port=' + os.environ.get('LIVESTREAM_PORT', '49100'))
-        for key in ('num_envs', 'epochs', 'max_iterations', 'batch_size', 'num_threads', 'chunk_iterations', 'episodes_per_env'):
+        for key in ('num_envs', 'epochs', 'batch_size', 'num_threads'):
             if key in data and (type(data[key]) is not int or data[key] <= 0):
                 raise ValueError(f'{key} must be a positive integer')
-        if kind == 'train' and data['deadline']:
-            deadline = datetime.fromisoformat(data['deadline'].replace('Z', '+00:00'))
-            if deadline.tzinfo is None:
-                raise ValueError('deadline needs a timezone, for example 2026-12-01T00:00:00Z')
         data['_kind'] = kind
         return argparse.Namespace(**data)
     except (OSError, TypeError, KeyError, ValueError) as error:
@@ -193,6 +168,6 @@ def save_config(args, directory):
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     kind = args._kind
-    fields = read_yaml(PROJECT / 'configs' / (CONFIGS[kind] + '.yaml'))
+    fields = read_yaml(PROJECT / 'configs' / 'stage2' / (CONFIGS[kind] + '.yaml'))
     values = {key: plain_config(getattr(args, key)) for key in fields}
     (directory / 'resolved.yaml').write_text(yaml.safe_dump(values, sort_keys=False))

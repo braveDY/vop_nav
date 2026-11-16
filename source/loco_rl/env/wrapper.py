@@ -34,7 +34,8 @@ class NavigationVecEnvWrapper:
         observation, reward, terminated, truncated, extras = self.env.step(actions)
         done = terminated | truncated
         infos = dict(extras)
-        infos["time_outs"] = truncated
+        if not self.env.cfg.is_finite_horizon:
+            infos["time_outs"] = truncated
         if "log" in extras and done.any():
             infos["episode"] = extras["log"]
         return observation["policy"], observation.get("critic"), reward, done, infos

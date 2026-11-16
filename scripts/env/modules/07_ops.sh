@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+unset -f stop_tb
+
 _stop_remote_tb() {
     _remote_exec 'if [[ -f .ops/tensorboard.pid ]]; then
         pid=$(cat .ops/tensorboard.pid)
@@ -19,7 +21,7 @@ _stop_remote_tb() {
     fi'
 }
 
-stop_tb() (
+_stop_tb() (
     cd "${PROJECT_ROOT}" || return 1
     mkdir -p .ops || return 1
     # Use fd 9 so background processes can close it and avoid holding the lock.
@@ -37,13 +39,9 @@ stop_tb() (
 
 tb() (
     local tunnel_pid=""
-    if [[ $# -gt 1 || ( $# -eq 1 && "$1" != "--stop" ) ]]; then
-        _err "Usage: tb to start. Use stop_tb to stop"
+    if [[ $# -ne 0 ]]; then
+        _err "Usage: tb to start. Use stop tb to stop"
         return 1
-    fi
-    if [[ "${1:-}" == "--stop" ]]; then
-        stop_tb
-        return $?
     fi
     cd "${PROJECT_ROOT}" || return 1
     mkdir -p .ops || return 1
@@ -116,7 +114,7 @@ PY
     done
     [[ "${ready}" == true ]] || { _err "TensorBoard start timed out or its log folder does not match."; return 1; }
     trap - EXIT INT TERM
-    _info "TensorBoard: http://localhost:${TB_PORT}. Use stop_tb to stop."
+    _info "TensorBoard: http://localhost:${TB_PORT}. Use stop tb to stop."
 )
 
 status() {

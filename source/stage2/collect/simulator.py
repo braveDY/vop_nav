@@ -313,8 +313,8 @@ def main():
                         goal_position_w=cpu(env.command_manager.get_term('goal').target_pos_w), actions=cpu(actions),
                         obstacle_positions_env=cpu(scene.positions), obstacle_velocities_w=cpu(scene.velocities),
                         obstacle_active=cpu(scene.active))
-                    _, _, reward, done, info = wrapper.step(actions)
-                    truncated = info['time_outs']
+                    _, _, reward, done, _ = wrapper.step(actions)
+                    truncated = env.reset_time_outs
                     sample.update(done_after_step=cpu(done), truncated_after_step=cpu(truncated),
                                   terminated_after_step=cpu(env.reset_terminated), reward=cpu(reward))
                     for name in ('success', 'collision', 'fall', 'outside'):

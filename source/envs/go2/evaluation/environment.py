@@ -29,10 +29,18 @@ def probe(env):
     return torch.zeros_like(collision)
 
 
-def make_config(scenario, num_envs, device, seed, vop_checkpoint, level=9):
-    cfg = VOPNavEnvCfg() if vop_checkpoint else Go2EnvCfg()
-    cfg.scene.num_envs = num_envs
-    cfg.sim.device = device
+def make_config(scenario, num_envs, device, seed, vop_checkpoint, level=9, task=None):
+    if task:
+        import gymnasium as gym
+        import importlib
+        module, name = gym.spec(task).kwargs['env_cfg_entry_point'].split(':')
+        cfg = getattr(importlib.import_module(module), name)()
+    else:
+        cfg = VOPNavEnvCfg() if vop_checkpoint else Go2EnvCfg()
+    if num_envs is not None:
+        cfg.scene.num_envs = num_envs
+    if device is not None:
+        cfg.sim.device = device
     cfg.seed = seed
     if vop_checkpoint:
         cfg.vop_checkpoint = str(vop_checkpoint)

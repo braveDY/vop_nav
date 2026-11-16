@@ -9,6 +9,97 @@ import time
 ROOT = Path(__file__).resolve().parents[2]
 
 
+
+def parse_arguments(kind, argv=None):
+    import argparse
+    import os
+    parser = argparse.ArgumentParser(description=f'Run navigation {kind} with native Python configuration')
+    parser.add_argument('--task', default='Unitree-Go2-VOP-BasicNav' + ('-Play' if kind == 'play' else ''))
+    parser.add_argument('--checkpoint', type=Path, required=kind != 'train')
+    parser.add_argument('--vop_checkpoint', type=Path)
+    parser.add_argument('--num_envs', type=int, default=4 if kind == 'evaluate' else None)
+    parser.add_argument('--device')
+    if kind != 'evaluate':
+        parser.add_argument('--seed', type=int)
+    parser.add_argument('--run_dir', type=Path)
+    parser.add_argument('--name', default='')
+    parser.add_argument('--kit_args', default='')
+    if kind == 'train':
+        parser.add_argument('--max_iterations', type=int)
+        parser.add_argument('--deadline')
+        parser.add_argument('--chunk_iterations', type=int, default=25)
+        parser.add_argument('--low_memory', action='store_true')
+    else:
+        parser.add_argument('--memory_reserve_gib', type=float, default=4.)
+        if kind == 'play':
+            parser.add_argument('--scenario', choices=('Training','Forest','Office','Square','Slow'), default='Training')
+            parser.add_argument('--level', type=int, choices=range(10))
+            parser.add_argument('--steps', type=int, default=0)
+        else:
+            parser.add_argument('--scenarios', nargs='+', choices=('Training','Forest','Office','Square','Slow'), default=['Forest','Office','Square','Slow'])
+            parser.add_argument('--levels', nargs='+', type=int, choices=range(10), default=[0,3,6,9])
+            parser.add_argument('--seeds', nargs='+', type=int, default=[123,456])
+            parser.add_argument('--episodes_per_env', type=int, default=2)
+    args = parser.parse_args(argv)
+    tasks = ('Unitree-Go2-VOP-BasicNav','Unitree-Go2-VOP-Nav')
+    allowed = tuple(task + '-Play' for task in tasks) if kind == 'play' else tasks
+    if args.task not in allowed:
+        parser.error('task must be one of: ' + ', '.join(allowed))
+    if ('VOP-Nav' in args.task) != bool(args.vop_checkpoint):
+        parser.error('VOP-Nav requires --vop_checkpoint; BasicNav must leave it unset')
+    for field in ('num_envs','max_iterations','chunk_iterations','episodes_per_env'):
+        value = getattr(args, field, None)
+        if value is not None and value <= 0:
+            parser.error(f'{field} must be positive')
+    if getattr(args, 'seed', None) is not None and not 0 <= args.seed < 2**32:
+        parser.error('seed must be in [0, 2**32)')
+    if any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in args.name):
+        parser.error('name can only contain English letters, numbers, _ and -')
+    for field in ('checkpoint','vop_checkpoint','run_dir'):
+        value = getattr(args, field)
+        if value is None:
+            continue
+        value = value.expanduser()
+        host = os.environ.get('HOST_PROJECT_ROOT')
+        if host and value.is_absolute() and value.is_relative_to(host):
+            value = ROOT / value.relative_to(host)
+        setattr(args, field, (ROOT / value).resolve())
+    if args.run_dir is None:
+        directory = 'navigation' if kind == 'train' else kind
+        stamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+        args.run_dir = ROOT / 'logs' / directory / (stamp + ('_' + args.name if args.name else ''))
+    args.headless, args.livestream = True, 0
+    if kind == 'play':
+        if args.scenario != 'Training' and args.level is not None:
+            parser.error('--level only applies to --scenario Training')
+        args.level = 9 if args.level is None else args.level
+        if args.steps < 0:
+            parser.error('steps must be nonnegative')
+        args.real_time = True
+        local = os.environ.get('RUN_MODE','local') == 'local'
+        args.headless, args.livestream = not local, 0 if local else 2
+        if not local and os.environ.get('REMOTE_STREAM_IP'):
+            args.kit_args += (' --/app/livestream/publicEndpointAddress=' + os.environ['REMOTE_STREAM_IP']
+                              + ' --/app/livestream/port=' + os.environ.get('LIVESTREAM_PORT','49100'))
+    if kind == 'train' and args.deadline:
+        try:
+            deadline = datetime.fromisoformat(args.deadline.replace('Z','+00:00'))
+            if deadline.tzinfo is None:
+                raise ValueError('timezone required')
+        except ValueError:
+            parser.error('deadline must be an ISO time with a timezone')
+    return args
+
+
+def save_arguments(args, directory):
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / 'arguments.json').write_text(json.dumps(vars(args), indent=2, default=str))
+
+
+def launcher_arguments(args):
+    return {key: value for key, value in vars(args).items() if value is not None}
+
 def _set_seed(seed):
     import numpy as np
     import torch
@@ -38,15 +129,15 @@ def create_env(args):
     spec = gym.spec(args.task)
     module, name = spec.kwargs['env_cfg_entry_point'].split(':')
     cfg = getattr(importlib.import_module(module), name)()
-    apply_values(cfg, args.environment)
     if hasattr(cfg, 'vop_checkpoint'):
         if not args.vop_checkpoint:
-            raise ValueError('VOP-Nav requires vop_checkpoint in YAML')
+            raise ValueError('VOP-Nav requires --vop_checkpoint')
         path = args.vop_checkpoint.expanduser()
         cfg.vop_checkpoint = str((ROOT / path).resolve() if not path.is_absolute() else path.resolve())
     elif args.vop_checkpoint:
         raise ValueError('vop_checkpoint requires a VOP-Nav task')
-    cfg.sim.device = args.device
+    if args.device is not None:
+        cfg.sim.device = args.device
     if args.num_envs is not None:
         if args.num_envs <= 0:
             raise ValueError('num_envs must be positive')
@@ -55,25 +146,21 @@ def create_env(args):
         if args.num_envs not in (None, 1):
             raise ValueError('low_memory needs num_envs: 1')
         configure_low_memory(cfg)
-    if args.experiment_name is None:
-        args.experiment_name = 'vop_nav' if hasattr(cfg, 'vop_checkpoint') else 'vop_basic'
-    _set_seed(args.seed)
-    cfg.seed = args.seed
-    native = gym.make(args.task, cfg=cfg).unwrapped
-    native.stream_render = bool(getattr(args, 'livestream', 0) > 0)
     module, name = spec.kwargs['train_cfg_entry_point'].split(':')
     train_cfg = getattr(importlib.import_module(module), name)()
-    apply_values(train_cfg, args.agent)
+    if args.seed is None:
+        args.seed = train_cfg.seed
+    _set_seed(args.seed)
+    cfg.seed = args.seed
+    args.device = cfg.sim.device
+    native = gym.make(args.task, cfg=cfg).unwrapped
+    args.num_envs = cfg.scene.num_envs
+    native.stream_render = bool(getattr(args, 'livestream', 0) > 0)
     train_cfg.seed = args.seed
-    if args.run_dir:
-        run = args.run_dir.expanduser()
-        if not run.is_absolute():
-            run = ROOT / run
-    else:
-        run = ROOT / 'logs' / 'navigation' / args.experiment_name / (datetime.now().strftime('%Y%m%d_%H%M%S_%f') + '_' + (args.name or 'train'))
-    run.mkdir(parents=True, exist_ok=True)
-    from stage2.config import save_config
-    save_config(args, run)
+    if args.max_iterations is not None:
+        train_cfg.runner.max_iterations = args.max_iterations
+    run = args.run_dir
+    save_arguments(args, run)
     train_config=train_cfg.to_dict()
     (run / 'config.json').write_text(json.dumps({'env': native.cfg.to_dict(),
         'train': train_config, 'arguments': vars(args),
@@ -100,24 +187,6 @@ def load_runner(env, config, run, checkpoint=None):
     if checkpoint:
         runner.load(str(checkpoint.expanduser().resolve()))
     return runner
-
-
-def apply_values(target, values):
-    for key, value in values.items():
-        if isinstance(target, dict):
-            if key not in target:
-                raise ValueError(f'Unknown configuration key: {key}')
-            current = target[key]
-        else:
-            if not hasattr(target, key):
-                raise ValueError(f'Unknown configuration field: {key}')
-            current = getattr(target, key)
-        if isinstance(value, dict) and current is not None:
-            apply_values(current, value)
-        elif isinstance(target, dict):
-            target[key] = value
-        else:
-            setattr(target, key, tuple(value) if isinstance(current, tuple) and isinstance(value, list) else value)
 
 
 def learn(runner, env, wrapper, config, run, args, app):

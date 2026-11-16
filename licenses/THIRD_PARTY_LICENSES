@@ -2,24 +2,10 @@
 
 ## Repository licensing
 
-Except for third-party material described below or material carrying a separate
-license notice, this repository's code, documentation, and project modifications
-are distributed under Creative Commons Attribution-NonCommercial 4.0
-International (CC BY-NC 4.0). The full text is in ../LICENSE:
-https://creativecommons.org/licenses/by-nc/4.0/legalcode
-
-Preserve existing copyright and license notices. Give appropriate credit to this
-repository and relevant upstream authors, link to the applicable license, and
-identify modifications when sharing adapted material. CC BY-NC 4.0 does not
-permit commercial use of the material it covers. It does not replace the
-independent licenses of third-party components or grant rights to trademarks.
-Because of the noncommercial restriction, the repository as a whole is not
-open source under the Open Source Initiative definition.
-
-This notice does not assign a new license to pretrained weights, datasets, or
-external robot assets. This source release does not include pretrained weights,
-datasets, or local robot URDF/mesh assets. Future releases of such material
-require a separate provenance and redistribution-permission review.
+Project code, documentation, and modifications are distributed under CC BY-NC 4.0
+(../LICENSE), except for third-party or separately licensed material. Preserve
+applicable notices and attribution, and identify modifications when redistributing.
+External dependencies, assets, weights, and datasets retain their own terms.
 
 ## ABS
 
@@ -58,10 +44,8 @@ ETH Zurich / NVIDIA copyright notices and applicable BSD terms must be retained.
 The actor/critic interface correspondence also applies to the local policy
 modules even though their network architectures differ from the upstream MLP.
 
-The IsaacLab environment adaptation, source/stage2/ workflow and VOP navigation
-extensions are additions or rewrites relative to this ABS baseline. This source
-comparison does not establish exclusive authorship, audit other upstream sources,
-or verify the provenance or redistribution rights of weights, datasets or assets.
+The IsaacLab adaptation, source/stage2/ workflow, and VOP navigation extensions
+are additions or rewrites relative to this ABS baseline.
 
 ## Legged Gym and RSL-RL
 
@@ -153,10 +137,8 @@ License: BSD-3-Clause for the framework code covered by its LICENSE.
 Relevant integration: IsaacLab-based environment/MDP APIs and
 source/assets/robot/unitree_go2.py, which imports the official Go2 configuration.
 
-Isaac Sim, downloadable USD robot assets, and other external resources may have
-separate terms. Importing an asset configuration does not grant redistribution
-rights to the asset itself. This repository does not bundle the removed local
-Go2 URDF/mesh directory as part of this licensing update.
+Isaac Sim and downloadable USD robot assets have separate terms; importing an
+asset configuration does not grant redistribution rights to the asset itself.
 
 The following is the upstream framework LICENSE retrieved on 2026-11-14. It is
 not a license inventory for every IsaacLab asset or dependency.
@@ -206,22 +188,17 @@ Pinned upstream license:
 https://github.com/sybrenstuvel/Python-RVO2/blob/c2c46ba8d59556aa10faf03479293236efea154d/LICENSE
 Full text: Apache-2.0.txt in this directory.
 
-This is an optional evaluation dependency installed separately into the
-runtime environment. Its source and compiled extension are not bundled in this
-source release. If redistributing the dependency, retain its
-license, source copyright notices, and any applicable upstream NOTICE material;
-mark modifications as required by Apache-2.0.
+This optional evaluation dependency is installed separately and is not bundled.
+Redistribution must retain its license, copyright notices, applicable NOTICE
+material, and modification notices as required by Apache-2.0.
 
 ## Other runtime dependencies
 
 Python, NumPy, PyTorch, TensorBoard, Cython, Isaac Sim, and other installed
-packages retain their own licenses. The repository license does not relicense
-these packages. Distributing an environment, container image, model bundle, or
-binary release requires checking the licenses of what is actually included.
+packages retain their own licenses.
 
 ## VOP-Nav paper attribution
 
 Learning Agile Navigation in Crowded Environments for Quadruped Robots:
 https://arxiv.org/abs/2607.15036
-This repository is an unofficial reproduction. Citing a paper is attribution,
-not permission to redistribute its text, figures, or an external implementation.
+This repository is an unofficial reproduction.

@@ -50,10 +50,4 @@ Thumbs.db
 /scripts/env/servers/*.env
 !/scripts/env/servers/local.env
 
-# Training data and model artifacts are distributed separately.
-/pretrained/
-/datasets/
-/data/
-*.pt
-*.pth
-*.onnx
+/record/

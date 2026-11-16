@@ -187,13 +187,14 @@ def latest_log(kind, project=PROJECT):
 
 
 def launch(kind, arguments):
-    from stage2.config import parse_config, plain_config, read_yaml, CONFIGS
-    import yaml
-    args = parse_config(kind, arguments)
+    from stage2.config import parse_config, plain_config, save_config
+    from navigation import parse_arguments, save_arguments
+    navigation = kind in ('train', 'play', 'evaluate')
+    args = parse_arguments(kind, arguments) if navigation else parse_config(kind, arguments)
     required = dict(collect='checkpoint', train_vop='dataset', compare='input', play='checkpoint', evaluate='checkpoint')
     for key in (required[kind],) if kind in required else ():
         if getattr(args, key) is None or not getattr(args, key).exists():
-            raise ValueError(f'Set {key} to an existing path in the YAML file')
+            raise ValueError(f'{key} must point to an existing path')
     for key in ('checkpoint', 'vop_checkpoint'):
         path = getattr(args, key, None)
         if path is not None and not path.is_file():
@@ -216,16 +217,15 @@ def launch(kind, arguments):
             raise FileExistsError(f'Run folder must be new: {run}')
         run.mkdir(parents=True)
         values = plain_config(vars(args))
-        allowed = read_yaml(PROJECT / 'configs' / (CONFIGS[kind] + '.yaml'))
-        snapshot = {key:values[key] for key in allowed}
-        effective = run / 'resolved.yaml'
-        effective.write_text(yaml.safe_dump(snapshot, sort_keys=False))
         command = [sys.executable, '-u']
-        if kind in ('collect', 'train_vop', 'compare'):
-            command += ['-m', 'stage2', 'train' if kind == 'train_vop' else kind]
+        if navigation:
+            save_arguments(args, run)
+            command += [str(PROJECT / 'scripts' / (kind + '.py')), *arguments,
+                        '--run_dir', str(run)]
         else:
-            command += [str(PROJECT / 'scripts' / (kind + '.py'))]
-        command += ['--config', str(effective), '--run-dir', str(run)]
+            save_config(args, run)
+            command += ['-m', 'stage2', 'train' if kind == 'train_vop' else kind,
+                        '--config', str(run / 'resolved.yaml'), '--run-dir', str(run)]
         log = run / (kind + '.log')
         with log.open('xb') as output:
             worker = subprocess.Popen(command, cwd=PROJECT, stdin=subprocess.DEVNULL, stdout=output,

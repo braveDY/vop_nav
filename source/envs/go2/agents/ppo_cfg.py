@@ -29,7 +29,7 @@ class RunnerCfg:
     policy_class_name: str = 'BasicNavActorCritic'
     algorithm_class_name: str = 'PPO'
     num_steps_per_env: int = 48
-    max_iterations: int = 10000
+    max_iterations: int = 6000
     save_interval: int = 1000
 
 

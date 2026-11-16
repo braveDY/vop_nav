@@ -297,6 +297,8 @@ class CurriculumCfg:
 
 @configclass
 class Go2EnvCfg(ManagerBasedRLEnvCfg):
+    # Match ABS navigation's send_timeouts=False: the deadline ends the task.
+    is_finite_horizon = True
     scene = SceneCfg(num_envs=4096, env_spacing=12., replicate_physics=False)
     actions = ActionsCfg()
     commands = CommandsCfg()

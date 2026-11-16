@@ -93,7 +93,7 @@ class RunRecords:
     def __init__(self, path, args):
         self.path = Path(path)
         self.path.mkdir(parents=True, exist_ok=True)
-        if any(p.name not in ('evaluate.log', 'play.log', 'launch.json', 'exit_code', 'stop_requested.json', 'resolved.yaml')
+        if any(p.name not in ('evaluate.log', 'play.log', 'launch.json', 'exit_code', 'stop_requested.json', 'arguments.json')
                for p in self.path.iterdir()):
             raise FileExistsError(f'Result directory is not empty: {self.path}')
         # Exclusive creation also prevents two Python processes from claiming one run.
@@ -164,7 +164,7 @@ def play(args, app):
     import torch
     from envs.go2.evaluation.environment import EvaluationEnv, make_config
     from loco_rl.env.wrapper import NavigationVecEnvWrapper
-    from .navigation import _set_seed
+    from .navigation import _set_seed, save_arguments
     preflight(args.scenario != 'Training', args.memory_reserve_gib)
     path=resolved(args.run_dir) if args.run_dir else ROOT/'logs/play'/datetime.now().strftime('%Y%m%d_%H%M%S_%f')
     records=RunRecords(path,args)
@@ -174,10 +174,11 @@ def play(args, app):
         stopped=True
     previous={sig:signal.signal(sig,stop) for sig in (signal.SIGTERM,signal.SIGINT)}
     try:
-        _set_seed(args.seed)
-        cfg=make_config(args.scenario,args.num_envs or 4,args.device,args.seed,resolved(args.vop_checkpoint) if args.vop_checkpoint else None,args.level)
-        from .navigation import apply_values
-        apply_values(cfg,args.environment)
+        seed = args.seed if args.seed is not None else 123
+        _set_seed(seed)
+        cfg=make_config(args.scenario,args.num_envs,args.device,seed,resolved(args.vop_checkpoint) if args.vop_checkpoint else None,args.level,task=args.task)
+        args.num_envs, args.device, args.seed = cfg.scene.num_envs, cfg.sim.device, seed
+        save_arguments(args,path)
         env=EvaluationEnv(cfg); env.stream_render=bool(args.livestream>0)
         wrapper=NavigationVecEnvWrapper(env)
         env.prepare(args.seed,args.level); wrapper.reset(); env.rows.clear(); env.record_episodes=True
@@ -209,16 +210,13 @@ def play(args, app):
 
 def configure_scenes(args):
     from envs.go2.evaluation.layouts import SCENARIOS
-    from .navigation import apply_values
-    settings = args.scene_settings
-    apply_values(SCENARIOS, settings['parameters'])
     selected = [args.scenario] if hasattr(args, 'scenario') else args.scenarios
     if not selected or any(name not in ('Training', *SCENARIOS) for name in selected):
-        raise ValueError('Select valid scene names in scenes.yaml')
+        raise ValueError('Select a valid scene name')
     levels = [args.level] if hasattr(args, 'level') else args.levels
     if not levels or any(level not in range(10) for level in levels):
         raise ValueError('Scene levels must be in 0..9')
-    if args.policy_type == 'vop' and not args.vop_checkpoint:
+    if 'VOP-Nav' in args.task and not args.vop_checkpoint:
         raise ValueError('Set vop_checkpoint for VOP-Nav')
-    if args.policy_type == 'basic' and args.vop_checkpoint:
+    if 'VOP-Nav' not in args.task and args.vop_checkpoint:
         raise ValueError('BasicNav does not use a VOP-Net checkpoint')
