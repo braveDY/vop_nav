@@ -6,6 +6,18 @@
 
 基础导航阶段参考 [ABS — Agile But Safe](https://agile-but-safe.github.io/)，基于其[官方代码](https://github.com/LeCAR-Lab/ABS)将 Isaac Gym 实现迁移到 IsaacLab。项目包含仿真适配和工具改动，目前不声称达到论文或官方实现的实验结果。
 
+## 导航演示
+
+VOP-Nav 策略在五种仿真场景中的表现。GIF 保留原速和完整过程。
+
+| Training | Square |
+| --- | --- |
+| ![Training](pretrained/stage3/videos/training.gif) | ![Square](pretrained/stage3/videos/square.gif) |
+| Forest | Office |
+| ![Forest](pretrained/stage3/videos/forest.gif) | ![Office](pretrained/stage3/videos/office.gif) |
+| Slow | |
+| ![Slow](pretrained/stage3/videos/slow.gif) | |
+
 ## 训练流程
 
 | 阶段 | 输入 | 输出 |

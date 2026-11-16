@@ -4,6 +4,18 @@
 
 An IsaacLab reproduction of [Learning Agile Navigation in Crowded Environments for Quadruped Robots](https://arxiv.org/abs/2607.15036) for Unitree Go2. The BasicNav stage adapts [ABS — Agile But Safe](https://github.com/LeCAR-Lab/ABS) from Isaac Gym to IsaacLab. This project does not claim to match the paper or official implementation's results.
 
+## Navigation demos
+
+VOP-Nav policy in five simulation scenes. GIF previews show the complete recordings at the original speed.
+
+| Training | Square |
+| --- | --- |
+| ![Training](pretrained/stage3/videos/training.gif) | ![Square](pretrained/stage3/videos/square.gif) |
+| Forest | Office |
+| ![Forest](pretrained/stage3/videos/forest.gif) | ![Office](pretrained/stage3/videos/office.gif) |
+| Slow | |
+| ![Slow](pretrained/stage3/videos/slow.gif) | |
+
 ## Setup
 
 Prepare an NVIDIA GPU, IsaacLab, Isaac Sim, PyTorch, NumPy, and PyYAML. IsaacLab must provide `MultiMeshRayCasterCfg` and `MultiMeshRayCasterCameraCfg`. A complete tested version matrix is not yet provided. Non-Training playback and evaluation scenes also need Python-RVO2; installation instructions are in the Chinese guide. Offline VOP-Net training does not start Isaac Sim.
