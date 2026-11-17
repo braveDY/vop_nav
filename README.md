@@ -53,7 +53,7 @@ Default navigation training runs for 6000 iterations. CLI overrides use undersco
 
 After code changes, run `sync_code` explicitly before launching remote tasks. Playback and evaluation require a navigation checkpoint and its adjacent training `config.json`; VOP-Nav also requires the matching VOP-Net checkpoint.
 
-See [README_ZH.md](README_ZH.md) for playback, evaluation, comparison exports, task management, and dependencies. This source release contains no pretrained weights, datasets, or local robot URDF/mesh assets.
+See [README_ZH.md](README_ZH.md) for playback, evaluation, comparison exports, task management, and dependencies. 
 
 ## License
 

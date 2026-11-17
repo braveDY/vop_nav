@@ -89,7 +89,7 @@ train --task Unitree-Go2-VOP-Nav \
   --vop_checkpoint logs/.../best.pt
 ```
 
-`collect` 一次完成仿真采集、原始数据及连续性检查、标签和分片生成。默认结果目录包含 `raw/`、`prepared/`。第二阶段 `train.yaml` 的 `dataset` 可以指向整个采集目录或 `prepared/`。采集失败或被停止时不会继续转换。VOP-Net 每次从头训练，仍保存 `best.pt` 和 `last.pt`，不支持续训。
+`collect` 一次完成仿真采集、原始数据及连续性检查、标签和分片生成。默认结果目录包含 `raw/`、`prepared/`。第二阶段 `train.yaml` 的 `dataset` 可以指向整个采集目录或 `prepared/`。采集失败或被停止时不会继续转换。VOP-Net 每次从头训练，仍保存 `best.pt` 和 `last.pt`。
 
 播放通过 `--scenario` 切换场景，支持 `Training`、`Forest`、`Office`、`Square` 和 `Slow`。默认是 `Training` 的第 9 级；`--level` 只适用于 `Training`，在其他场景中传入会报错。
 
